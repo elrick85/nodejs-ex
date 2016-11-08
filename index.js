@@ -18,7 +18,7 @@ var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
     mongoURL = process.env.OPENSHIFT_MONGODB_DB_URL || process.env.MONGO_URL,
     mongoURLLabel = "";
 
-app.use(express.static('../dist'));
+app.use(express.static('dist'));
 
 var errorHandler = function(res, err) {
     res.status(err.status || 500);
