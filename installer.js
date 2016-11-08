@@ -4,7 +4,7 @@
 
 var loki = require("lokijs");
 
-var db = new loki('./server/db.json');
+var db = new loki('./db.json');
 var children = db.addCollection('words', {
     unique: ['word']
 });
