@@ -2,23 +2,28 @@
   "name": "nodejs-ex",
   "version": "0.0.1",
   "description": "Node.js sample app for OpenShift 3",
-  "main": "server.js",
+  "main": "index.js",
   "dependencies": {
+    "body-parser": "^1.15.2",
     "chai": "^3.5.0",
     "chai-http": "^2.0.1",
+    "csvtojson": "^1.0.3",
     "ejs": "^2.4.1",
-    "express": "^4.13.4",
+    "express": "^4.14.0",
+    "lokijs": "^1.4.1",
     "mocha": "^2.4.5",
     "mongodb": "^2.1.16",
     "morgan": "^1.7.0",
-    "object-assign":"4.1.0"
+    "multer": "^1.2.0",
+    "object-assign": "4.1.0",
+    "q": "^1.4.1"
   },
   "engine": {
     "node": "*",
     "npm": "*"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
     "test": "IP=0.0.0.0 PORT=3030 mocha --timeout 5000 tests/*_test.js"
   },
   "repository": {
