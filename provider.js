@@ -14,7 +14,7 @@ module.exports = {
         };
 
         var defer = Q.defer();
-        var db = new loki('./server/db.json');
+        var db = new loki('./db.json');
 
         db.loadDatabase({}, function(res) {
             var col = db.getCollection("words");
@@ -41,7 +41,7 @@ module.exports = {
 
     add: function(data) {
         var defer = Q.defer();
-        var db = new loki('./server/db.json');
+        var db = new loki('./db.json');
         var errors = [];
 
         db.loadDatabase({}, function(res) {
