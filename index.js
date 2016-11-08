@@ -53,6 +53,19 @@ app.post('/api/getList', jsonParser, function(req, res) {
 
 });
 
+var options = {
+    root: __dirname + '/dist/',
+    dotfiles: 'deny',
+    headers: {
+        'x-timestamp': Date.now(),
+        'x-sent': true
+    }
+  };
+
+app.get('/**', function(req, res, next) {
+    res.sendFile("index.html", options);
+});
+
 app.listen(port, ip, function() {
     console.log('Express server listening on http://%s:%s', ip, port);
 });
