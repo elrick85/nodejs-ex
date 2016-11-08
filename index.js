@@ -13,6 +13,11 @@ var app = express();
 var upload = multer();
 var jsonParser = bodyParser.json()
 
+var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
+    ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0',
+    mongoURL = process.env.OPENSHIFT_MONGODB_DB_URL || process.env.MONGO_URL,
+    mongoURLLabel = "";
+
 app.use(express.static('../dist'));
 
 var errorHandler = function(res, err) {
@@ -48,6 +53,8 @@ app.post('/api/getList', jsonParser, function(req, res) {
 
 });
 
-app.listen(3000, function() {
-    console.log('Express server listening on port 3000');
+app.listen(port, ip, function() {
+    console.log('Express server listening on http://%s:%s', ip, port);
 });
+
+module.exports = app;
