@@ -20,6 +20,13 @@ var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
 
 app.use(express.static('dist'));
 
+try{
+    fs.accessSync(provider.getDbPath(), fs.constants.F_OK)
+}
+catch(e){
+    provider.installDb();
+}
+
 var errorHandler = function(res, err) {
     res.status(err.status || 500);
     res.json({ message: err.message || err.error });
