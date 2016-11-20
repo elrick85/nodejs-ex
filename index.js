@@ -11,7 +11,7 @@ var provider = require("./provider");
 
 var app = express();
 var upload = multer();
-var jsonParser = bodyParser.json()
+var jsonParser = bodyParser.json();
 
 var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
     ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0',
@@ -58,19 +58,6 @@ app.post('/api/getList', jsonParser, function(req, res) {
             errorHandler(res, err);
         });
 
-});
-
-var options = {
-    root: __dirname + '/dist/',
-    dotfiles: 'deny',
-    headers: {
-        'x-timestamp': Date.now(),
-        'x-sent': true
-    }
-  };
-
-app.get('/**', function(req, res, next) {
-    res.sendFile("index.html", options);
 });
 
 app.listen(port, ip, function() {
