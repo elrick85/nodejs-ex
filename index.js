@@ -8,6 +8,7 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var converter = require("./converter");
 var provider = require("./provider");
+var fs = require("fs");
 
 var app = express();
 var upload = multer();
@@ -20,13 +21,6 @@ var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
 
 app.use(express.static('dist'));
 
-try{
-    fs.accessSync(provider.getDbPath(), fs.constants.F_OK)
-}
-catch(e){
-    provider.installDb();
-}
-
 var errorHandler = function(res, err) {
     res.status(err.status || 500);
     res.json({ message: err.message || err.error });
@@ -38,7 +32,8 @@ app.get('/api', function(req, res, next) {
 
 app.post('/api/upload', upload.single("file"), function(req, res) {
     converter.byBuffer(req.file.buffer, function(data) {
-        provider.add(data)
+        provider
+            .addMany(data)
             .then(function(result) {
                 res.json(result);
             })
@@ -46,6 +41,18 @@ app.post('/api/upload', upload.single("file"), function(req, res) {
                 errorHandler(res, err);
             });
     });
+});
+
+app.post('/api/word', jsonParser, function(req, res) {
+    provider
+        .findOne(req.body)
+        .then(function(data) {
+            res.json(data);
+        })
+        .fail(function(err) {
+            errorHandler(res, err);
+        });
+
 });
 
 app.post('/api/getList', jsonParser, function(req, res) {
@@ -58,6 +65,28 @@ app.post('/api/getList', jsonParser, function(req, res) {
             errorHandler(res, err);
         });
 
+});
+
+app.post("/api/update", jsonParser, function(req, res) {
+    provider
+        .update(req.body)
+        .then(function(data) {
+            res.json(data);
+        })
+        .fail(function(err) {
+            errorHandler(res, err);
+        });
+});
+
+app.post("/api/add", jsonParser, function(req, res) {
+    provider
+        .addOne(req.body)
+        .then(function(data) {
+            res.json(data);
+        })
+        .fail(function(err) {
+            errorHandler(res, err);
+        });
 });
 
 app.listen(port, ip, function() {
