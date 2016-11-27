@@ -10,6 +10,7 @@ var mongoose = require('mongoose');
 var mongoURL = process.env.MONGODB_DB_URL;
 
 var Word = require("./schema").Word;
+var Meaning = require("./schema").Meaning;
 
 module.exports = {
     connection: function(cb) {
@@ -89,6 +90,43 @@ module.exports = {
         return defer.promise;
     },
 
+    _getMeaningsTotal: function(options) {
+        var defer = Q.defer();
+        var find = Meaning.where(options);
+
+        find.count(function(err, count) {
+            if(err) {
+                defer.reject(err);
+            } else {
+                defer.resolve(count)
+            }
+        });
+
+        return defer.promise;
+    },
+
+    _getMeaningsList: function(_options) {
+        var defer = Q.defer();
+
+        Meaning.where({})
+            .skip(_options.offset)
+            .limit(_options.limit)
+            .exec(function(err, data) {
+                if(err) {
+                    defer.reject(err);
+                } else {
+                    var info = {
+                        data: data,
+                        pagination: {}
+                    };
+
+                    defer.resolve(info);
+                }
+            });
+
+        return defer.promise;
+    },
+
     getList: function(options) {
         var _options = {
             offset: options.offset ? Number(options.offset) : 0,
@@ -112,10 +150,33 @@ module.exports = {
         });
     },
 
+    getMeaningList: function(options) {
+        var _options = {
+            offset: options.offset ? Number(options.offset) : 0,
+            limit: options.limit ? Number(options.limit) : 1
+        };
+
+        var self = this;
+
+        return self.connection(function() {
+            var _all = [self._getMeaningsTotal({}), self._getMeaningsList(_options)];
+
+            return Q.spread(_all, function(total, list) {
+                list.pagination = {
+                    total: total,
+                    offset: _options.offset,
+                    limit: _options.limit
+                };
+
+                return list;
+            });
+        });
+    },
+
     _findOneAndUpdate: function(data) {
         var defer = Q.defer();
 
-        Word.findOneAndUpdate({"_id": data._id}, { $set: data })
+        Word.findOneAndUpdate({ "_id": data._id }, { $set: data })
             .exec(function(err, row) {
                 if(err) {
                     defer.reject(err);
@@ -131,9 +192,9 @@ module.exports = {
         var self = this;
 
         var process = function() {
-            return self._findOne({"_id": data._id})
+            return self._findOne({ "_id": data._id })
                 .then(function(item) {
-                    if(item.word === data.word){
+                    if(item.word === data.word) {
                         return self._findOneAndUpdate(data);
                     } else {
                         return Q.reject(new Error("You can not change a word title!"));
@@ -169,19 +230,28 @@ module.exports = {
         return this.connection(process);
     },
 
-    _saveItem: function(item) {
+    _saveWordItem: function(item) {
         var defer = Q.defer();
-        var row = new Word(item);
+        var _meaning = new Meaning(item);
+        var _word = new Word(item);
 
-        row.save(function(e) {
+        _word.meanings = [_meaning];
+
+        _word.save(function(e, data) {
             if(e) {
                 defer.reject(e);
             } else {
-                defer.resolve(true);
+                defer.resolve(data);
             }
         });
 
         return defer.promise;
+    },
+
+    _saveItem: function(item) {
+        var self = this;
+
+        return self._saveWordItem(item);
     },
 
     addOne: function(data) {

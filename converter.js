@@ -8,7 +8,7 @@ var stream = require("stream");
 
 function _convert(rs, cb) {
     var result = [];
-    var csvConverter = new Converter({ delimiter: ";" });
+    var csvConverter = new Converter({ delimiter: ";", noheader: true });
 
     csvConverter.on("end_parsed", function(jsonObj) {
         console.log(result);
