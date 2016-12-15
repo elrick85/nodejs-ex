@@ -16,31 +16,35 @@ module.exports = {
     connection: function(cb) {
         return this.connect()
             .then(cb)
-            .catch(function(err) {
-                mongoose.connection.close();
-                return Q.reject(err);
-            })
             .then(function(data) {
                 mongoose.connection.close();
                 return data;
+            })
+            .catch(function(err) {
+                mongoose.connection.close();
+                return Q.reject(err);
             });
     },
 
     connect: function() {
         var self = this;
 
-        mongoose.connect(mongoURL);
-
-        var db = mongoose.connection;
         var defer = Q.defer();
 
-        db.on('error', function(err) {
-            defer.reject(err);
-        });
+        mongoose.connection.close()
+            .then(function() {
+                mongoose.connect(mongoURL);
 
-        db.once('open', function() {
-            defer.resolve(db);
-        });
+                var db = mongoose.connection;
+
+                db.once('error', function(err) {
+                    defer.reject(err);
+                });
+
+                db.once('open', function() {
+                    defer.resolve(db);
+                });
+            });
 
         return defer.promise;
     },
@@ -129,8 +133,8 @@ module.exports = {
 
     getList: function(options) {
         var _options = {
-            offset: options.offset ? Number(options.offset) : 0,
-            limit: options.limit ? Number(options.limit) : 1
+            offset: options.skip ? Number(options.skip) : 0,
+            limit: options.take ? Number(options.take) : 1
         };
 
         var self = this;
@@ -141,8 +145,8 @@ module.exports = {
             return Q.spread(_all, function(total, list) {
                 list.pagination = {
                     total: total,
-                    offset: _options.offset,
-                    limit: _options.limit
+                    offset: _options.skip,
+                    limit: _options.skip
                 };
 
                 return list;
