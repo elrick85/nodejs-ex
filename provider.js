@@ -75,19 +75,69 @@ module.exports = {
     _getList: function(_options) {
         var defer = Q.defer();
 
-        Word.where({})
-            .skip(_options.offset)
-            .limit(_options.limit)
+        var pipeline = [
+            { $unwind: "$meanings" },
+            {
+                $group: {
+                    _id: {
+                        _id: "$_id",
+                        word: "$word",
+                        transcription: "$transcription",
+                        audio: "$audio",
+                        date: "$date"
+                    },
+                    meaningsCount: { $sum: 1 }
+                }
+            }
+        ];
+
+        if(_options.sort){
+            pipeline.push({ $sort: _options.sort });
+        }
+
+        pipeline.push({ $skip: _options.skip });
+        pipeline.push({ $limit: _options.take });
+
+        Word
+            .aggregate(pipeline)
             .exec(function(err, data) {
                 if(err) {
                     defer.reject(err);
                 } else {
-                    var info = {
-                        data: data,
-                        pagination: {}
-                    };
+                    var ids = data.map(function(v) {
+                        return v._id;
+                    });
 
-                    defer.resolve(info);
+                    Word
+                        .where({_id: {"$in": ids}})
+                        .exec(function(err, items) {
+                            if(err){
+                                defer.reject(err);
+                            } else {
+                                var _items = data.map(function(v) {
+                                    var _id = v._id._id.toString();
+
+                                    var item = items.find(function(c) {
+                                        return c._id.toString() === _id;
+                                    });
+
+                                    if(item){
+                                        item = item.toJSON();
+                                        item.meaningsCount = v.meaningsCount;
+                                        return item;
+                                    } else {
+                                        return v;
+                                    }
+                                });
+
+                                var info = {
+                                    data: _items,
+                                    pagination: {}
+                                };
+
+                                defer.resolve(info);
+                            }
+                        });
                 }
             });
 
@@ -132,21 +182,29 @@ module.exports = {
     },
 
     getList: function(options) {
-        var _options = {
-            offset: options.skip ? Number(options.skip) : 0,
-            limit: options.take ? Number(options.take) : 1
-        };
-
         var self = this;
 
+        if(options.sort){
+            var _sort = options.sort.reduce(function(res, v) {
+                var order = v.dir === "desc" ? -1 : 1;
+                if(v.field !== "meaningsCount"){
+                    res["_id." + v.field] = order;
+                } else {
+                    res[v.field] = order;
+                }
+
+                return res;
+            }, {});
+
+            options.sort = _sort;
+        }
+
         return self.connection(function() {
-            var _all = [self._getTotal({}), self._getList(_options)];
+            var _all = [self._getTotal({}), self._getList(options)];
 
             return Q.spread(_all, function(total, list) {
                 list.pagination = {
-                    total: total,
-                    offset: _options.skip,
-                    limit: _options.skip
+                    total: total
                 };
 
                 return list;
