@@ -89,6 +89,10 @@ app.post("/api/add", jsonParser, function(req, res) {
         });
 });
 
+app.get("*", function(req, res) {
+    res.sendfile("./dist/index.html");
+});
+
 app.listen(port, ip, function() {
     console.log('Express server listening on http://%s:%s', ip, port);
 });
