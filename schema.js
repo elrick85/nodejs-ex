@@ -7,18 +7,18 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var meaningSchema = new Schema({
-    meaning: String,
-    trans: String,
-    picture: String,
-    example: String,
+    meaning: {type: String, default: ""},
+    trans: {type: String, default: ""},
+    picture: {type: String, default: ""},
+    example: {type: String, default: ""},
     date: { type: Date, default: Date.now }
 });
 
 var wordSchema = new Schema({
     word: String,
     meanings: [meaningSchema],
-    transcription: String,
-    audio: String,
+    transcription: {type: String, default: ""},
+    audio: {type: String, default: ""},
     date: { type: Date, default: Date.now }
 });
 
