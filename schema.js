@@ -18,6 +18,9 @@ var wordSchema = new Schema({
     word: String,
     meanings: [meaningSchema],
     transcription: {type: String, default: ""},
+    trans: {type: String, default: ""},
+    picture: {type: String, default: ""},
+    example: {type: String, default: ""},
     audio: {type: String, default: ""},
     date: { type: Date, default: Date.now }
 });

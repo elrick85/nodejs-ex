@@ -55,6 +55,18 @@ app.post('/api/word', jsonParser, function(req, res) {
 
 });
 
+app.post('/api/delete', jsonParser, function(req, res) {
+    provider
+        .removeOne(req.body)
+        .then(function(data) {
+            res.json(data);
+        })
+        .fail(function(err) {
+            errorHandler(res, err);
+        });
+
+});
+
 app.post('/api/getList', jsonParser, function(req, res) {
     provider
         .getList(req.body)

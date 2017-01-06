@@ -91,7 +91,7 @@ module.exports = {
             }
         ];
 
-        if(_options.sort){
+        if(_options.sort && _options.sort.length > 0){
             pipeline.push({ $sort: _options.sort });
         }
 
@@ -359,5 +359,30 @@ module.exports = {
         };
 
         return this.connection(process);
+    },
+
+    removeOne: function(options) {
+        var self = this;
+
+        var process = function() {
+            return self._removeOne(options);
+        };
+
+        return this.connection(process);
+    },
+
+    _removeOne: function(options) {
+        var defer = Q.defer();
+
+        Word.findOneAndRemove(options)
+            .exec(function(e, data) {
+                if(e) {
+                    defer.reject(e);
+                } else {
+                    defer.resolve(data);
+                }
+            });
+
+        return defer.promise;
     }
 };
